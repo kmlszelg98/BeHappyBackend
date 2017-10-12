@@ -1,0 +1,327 @@
+#%RAML 0.8
+title: Therapies API
+version: "1.0.0"
+baseUri: "localhost:8080/api/"
+securitySchemes:
+  - JWT:
+    type: JsonWebToken based authentication
+schemas:
+    -
+        TherapyRequest:
+            '{
+                "type":"object",
+                "$schema":"http://json-schema.org/draft-03/schema#",
+                "title":"TherapyRequest",
+                "properties":
+                    {
+                        "name":{"type":"string","required":false,"title":"name"},
+                        "beginningDate":{"type":"string","required":false,"title":"beginningDate"},
+                        "role":{"type":"string","required":false,"title":"role"}
+                    }
+                }'
+    -
+        TherapyResponse:
+            '{
+                "type":"object",
+                "$schema":"http://json-schema.org/draft-03/schema#",
+                "title":"TherapyResponse",
+                "properties":
+                    {"id":{"type":"integer","required":false,"title":"id"},
+                    "name":{"type":"string","required":false,"title":"name"},
+                    "begginingDate":{"type":"string","required":false,"title":"begginingDate"},
+                    "numOfPatients":{"type":"integer","required":false,"title":"numOfPatients"},
+                    "numOfWardens":{"type":"integer","required":false,"title":"numOfWardens"},
+                    "numOfTherapists":{"type":"integer","required":false,"title":"numOfTherapists"}
+                }
+            }'
+    -
+        UserAddingRequest:
+            '{
+                "type":"object",
+                "$schema":"http://json-schema.org/draft-03/schema#",
+                "title":"UserAddingRequest",
+                "properties":
+                    {"role":{"type":"string","required":true,"title":"role"},
+                    "email":{"type":"string","required":true,"title":"email"}
+                }
+            }'
+    -   TherapyResponseList:
+            '{
+                "type": "array",
+                "items": {"$ref": "TherapyResponse"},
+                "$schema":""http://json-schema.org/draft-03/schema#",
+                "title":"TherapyResponse[]",
+            }'
+    -   UserResponse:
+            '{
+                "type":"object",
+                "$schema":"http://json-schema.org/draft-03/schema#",
+                "title":"UserResponse",
+                "properties": {
+                    "id":{ "type":"integer", "required":true, "title":"id" },
+                    "email":{ "type":"string", "required":true, "title":"email" }
+                }
+            }'
+    -   UserResponseList:
+            '{
+                "type": "array",
+                "items": {"$ref": "UserResponse"},
+                "$schema":""http://json-schema.org/draft-03/schema#",
+                "title":"UserResponse[]",
+            }'
+/therapies/:
+    displayName: Therapy manipulation
+    description: Endpoint manage user's therapies
+    post:
+        description: Create a new therapy
+        displayName: Create therapy
+        securedBy: JWT
+        body:
+            application/json:
+                schema: TherapyRequest
+                example: '
+                 {
+                     "name":"sample name",
+                     "beginningDate":"1995:11:13T20:11:03",
+                     "role":"PATIENT"
+                 }'
+        responses:
+            201:
+                description: Therapy was successfully created
+                body:
+                    application/json:
+                        schema: TherapyResponse
+                        example:
+                        '{
+                            "id":1,
+                            "name":"sample name",
+                            "begginingDate":"1995:11:13T20:11:03",
+                            "numOfPatients":1,
+                            "numOfWardens":1,
+                            "numOfTherapists":1
+                        }'
+            409:
+                description: Therapy with given name already exists. An error message (simple string) is returned
+                body:
+                    example:
+                        "Therapy with given name already exists"
+    get:
+        description: Get user's therapy lsit
+        displayName: Get therapy list
+        securedBy: JWT
+        responses:
+            200:
+                description: The list of user's therapies is returned
+                body:
+                    application/json:
+                        schema: TherapyResponseList
+                        example:
+                        '{
+                            {
+                                "id":1,
+                                "name":"sample name",
+                                "beginningDate":"1995:11:13T20:11:03",
+                                "numOfPatients":1,
+                                "numOfWardens":1,
+                                "numOfTherapists":1
+                            },
+                            {
+                                "id":5,
+                                "name":"otherTherapy",
+                                "beginningDate":"1999:11:12T18:11:06",
+                                "numOfPatients":1,
+                                "numOfWardens":0,
+                                "numOfTherapists":2
+                            }
+                        }'
+/therapies/{therapyId}:
+    displayName: Manage therapies
+    description: Endpoint to manage existing therapies
+    uriParameters:
+        therapyId:
+            displayName: therapyId
+            description: Id of therapy to edit
+            type: integer
+            required: false
+            repeat: false
+    post:
+        description: Edit parameters. If a parameter is null then it's not changed. Only available for patient.
+        displayName: Edit Therapy
+        securedBy: JWT
+        body:
+            application/json:
+                schema: TherapyRequest
+                example: '
+                {
+                    "name":"sample name",
+                    "beginningDate":"1995:11:13T20:11:03",
+                    "role":"WARDEN"
+                }'
+        responses:
+            "200":
+                description: All required changes succeeded. New therapy attributes in response
+                body:
+                    application/json:
+                        schema: TherapyResponse
+                        example:
+                        '{
+                            "id":1,
+                            "name":"sample name",
+                            "begginingDate":"1995:11:13T20:11:03",
+                            "numOfPatients":1,
+                            "numOfWardens":1,
+                            "numOfTherapists":1
+                        }'
+            "401":
+                description: user is not in therapy or has no right to perform operation of editing therapy
+            "404":
+                description: therapy id is invalid
+    delete:
+        description: Delete the specified therapy
+        displayName: Delete therapy
+        securedBy: JWT
+        responses:
+            200:
+                description: The therapy was successfully deleted
+            404:
+                description: The therapy id in the URI path was invalid. A string message is returned
+                body:
+                    example: "Invalid therapy id"
+            401:
+                description: User does not have the authority to delete the therapy with given ID. A string message is returned
+                body:
+                    example: "Issuer has no authority to perform this action"
+/therapies/{therapy_id}/members:
+    displayName: Manage therapy members
+    description: Endpoint to manage members of a therapy
+    uriParameters:
+        therapy_id:
+            displayName: therapy_id
+            description: Id of therapy for which user related requests are processed
+            type: long
+    post:
+        description: Add a member to the therapy. If the request is successful, an email with activation link is sent to
+                     the invited user. If he's already in the database, he just has to log in and approve the therapy invitation.
+                     Otherwise he has to register and gets added to the therapy automatically. Available for patient and therapy creator.
+        displayName: Add member
+        securedBy: JWT
+        body:
+            application/json:
+                schema: UserAddingRequest
+                example:
+                '{
+                     "email":"aa@bb.c",
+                     "role":"WARDEN"
+                 }'
+        responses:
+            200:
+                description: The request succeeded and the mail with activation link was sent
+             401:
+                            description: User does not have the authority to add members to therapy with given id
+                            body:
+                                example: "Issuer has no authority to perform this action"
+            404:
+                description: The therapy id in the URI path was invalid. A string message is returned
+                body:
+                    example: "Invalid therapy id"
+            409:
+                description: Role which user has chosen for the member he is adding is unavailable
+            500:
+                description: Mailing server failed to perform operation
+
+    get:
+        description: Returns a list of all members of the specified therapy
+        displayName: Get members
+        securedBy: JWT
+        responses:
+            200:
+                description: A list of members is successfully returned
+                body:
+                    application/json:
+                        schema: UserResponseList
+            404:
+                description: The therapy id in the URI path was invalid. A string message is returned
+                body:
+                    example: "Invalid therapy id"
+
+/therapies/{therapy_id}/remove:
+    displayName: Remove Member
+    description: Endpoint for removing member from specific therapy
+     uriParameters:
+            therapy_id:
+                displayName: therapy_id
+                description: Id of therapy for which user related requests are processed
+                type: long
+    post:
+        description: removes from specific therapy user with email that equals email from request.
+        displayName: Remove Member
+        securedBy: JWT
+        body:
+            application/json:
+                schema: EmailRequest
+                example:
+                '{
+                "email":"email@email.email"
+                }'
+        responses:
+            200:
+                description: member is succesfully deleted from therapy
+            401:
+                description: user can't access specific therapy
+            403:
+                description: user doesn't have permission to perform this operation
+            404:
+                description: there is no such user in a therapy
+
+/therapies/{therapy_id}/assignSpecial:
+    displayName: assign Special member
+    description: Endpoint for assigning special members
+     uriParameters:
+            therapy_id:
+                displayName: therapy_id
+                description: Id of therapy for which user related requests are processed
+                type: long
+    post:
+        description: assigns role of special member for specified user
+        displayName: Assign Special Member
+        securedBy: JWT
+        body:
+            application/json:
+                schema: EmailRequest
+                example:
+                '{
+                "email":"email@email.email"
+                }'
+        responses:
+            200:
+                description: member is succesfully assigned as special member
+            401:
+                description: logged user can't access specific therapy
+            403:
+                description: logged user doesn't have permission to perform this operation
+            404:
+                description: there is no such member in a therapy
+
+                /therapies/{therapy_id}/role:
+                    displayName: get Role of Logged User
+                    description: Endpoint for getting role of logged user
+                     uriParameters:
+                            therapy_id:
+                                displayName: therapy_id
+                                description: Id of therapy for which user related requests are processed
+                                type: long
+                    get:
+                        description: returns role of currently logged user in specific therapy
+                        displayName: Get role of Logged User
+                        securedBy: JWT
+                        responses:
+                            200:
+                                description: logged user is in therapy, returns his role
+                                body:
+                                application/json:
+                                Schema: RoleEnum
+                                example: '{"role":"WARDEN"}'
+                            403:
+                                description: logged user doesn't have permission to perform this operation
+                            404:
+                                description: there is no such member in a therapy

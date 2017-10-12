@@ -1,0 +1,77 @@
+#%RAML 0.8
+---
+title: Therapy Activities
+baseUri: api/mood
+version: v2.21.01.2016
+
+schemas:
+    headers:
+            X-AUTH-TOKEN:
+                displayName: X-AUTH-TOKEN
+                description: User token
+                type: string
+                required: true
+                repeat: false
+                example: eyJ0eX.eyJlbWFpbCI6IJiLmNjIn0.mUQwMV_yw-G4
+    TherapyMoodRequest:
+        '{
+            "type":"object",
+            "$schema":"http://json-schema.org/draft-03/schema#",
+            "title":"TherapyStatisticsRequest",
+            "properties":
+                {
+                    "date":{"type":"string","required":true,"title":"date"},
+                    "mark":{"type":"integer","required":true,"title":"mark"},
+                    "fear":{"type":"integer","required":true,"title":"fear"}
+                }
+        }'
+
+/{therapy_id}:
+    /range:
+        get:
+            description: Returns list of TherapyMoodRequests got by range
+                uriParameters:
+                        begindate:
+                            displayName: begindate
+                            type: Date
+                            format : "yyyy-MM-dd"
+                            required: true
+                uriParameters:
+                        enddate:
+                            displayName: enddate
+                            type: Date
+                            format : "yyyy-MM-dd"
+                            required: true
+            "200":
+                description: successful
+            "404":
+                description: bad therapy id
+
+
+    /avg/{year}:
+        get:
+            description: Returns average of marks by year
+
+            "200":
+                description: successful
+            "404":
+                description: bad therapy id
+
+
+    /avg/{year}/{month}:
+        get:
+            description: Returns average of marks by year and month
+
+            "200":
+                description: successful
+            "404":
+                description: bad therapy id
+
+    /add:
+        post:
+          description: Add mood statistic for one day
+
+            "200":
+                description: successful
+            "404":
+                description: bad therapy id

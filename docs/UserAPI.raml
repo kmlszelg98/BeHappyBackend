@@ -1,0 +1,233 @@
+#%RAML 0.8
+title: Petstore API
+version: "1.0.0"
+baseUri: "localhost:8080/api/"
+schemas:
+    -
+        User: '{"type":"object","$schema":"http://json-schema.org/draft-03/schema#","title":"User","properties":{"email":{"type":"string","required":true,"title":"email"},"password":{"type":"string","required":true,"title":"password"}}}'
+    -
+        UserResponse: '{"type":"object","$schema":"http://json-schema.org/draft-03/schema#","description":"Response of type User","title":"UserResponse","properties":{"email":{"type":"string","required":false,"title":"email"}}}'
+    -
+        TokenResponse: '{"type":"object","$schema":"http://json-schema.org/draft-03/schema#","description":"JSON containing generated token","title":"TokenResponse","properties":{"token":{"type":"string","required":false,"title":"token"}}}'
+/users:
+    description: Endpoint to manage users
+    get:
+        description: Gets list of all registered users
+        displayName: getUsers
+        headers:
+            X-AUTH-TOKEN:
+                displayName: X-AUTH-TOKEN
+                description: User token
+                type: string
+                required: true
+                repeat: false
+                example: eyJ0eX.eyJlbWFpbCI6IJiLmNjIn0.mUQwMV_yw-G4
+        responses:
+            "200":
+                description: Return list of all users
+                body:
+                    application/json:
+                        schema: UserResponse
+                        example: '[{"email":"sample email"}]'
+    post:
+        displayName: Register user
+        body:
+            application/json:
+                schema: User
+                example: '{"email":"sample email","password":"sample password"}'
+        responses:
+            "200":
+                description: User  created
+            "500":
+                description: server was unable to send email
+            "400":
+                description: Illegal format of email/password in request
+            "409":
+                description: user already in our database either after or before confirmation
+/users/confirm/{ConfirmationId}:
+    displayName: Confirmation endpoint
+    uriParameters:
+            ConfirmationId:
+                displayName: ConfirmationId
+                description: Id of registration
+                type: String
+                required: true
+                repeat: false
+    get:
+        responses:
+            "200":
+                description:  Registration confirmed, return token
+                body:
+                    application/json:
+                        schema: TokenResponse
+                         example: '{"token":"sample token"}'
+            "404":
+                description: Invalid id
+            "409":
+                description: User already in database(unlikely but still)
+
+
+/users/invite/{InvitationId}:
+    displayName: Invitation endpoint for unregistered users
+    uriParameters:
+            InvitationId:
+                displayName: InvitationId
+                description: Id of invitation
+                type: String
+                required: true
+                repeat: false
+    get:
+        description: Returns email of a person invited to a therapy
+        responses:
+            "200":
+                description: valid invitation id, return email
+                body:
+                    application/json:
+                        schema: UserResponse
+                        example: '{"email":"sample email"}'
+            "404":
+                description: invalid invitation id
+    post:
+        description: Registers user from specific invitation
+        body:
+            application/json:
+                schema: User
+                example: '{"email":"sample email","password":"sample password"}'
+            responses:
+                    "200":
+                        description: User  created and added to a therapy with specific role, returns token
+                        body:
+                        application/json:
+                                                schema: TokenResponse
+                                                example: '{"token":"sample token"}'
+                    "404":
+                        description: invalid invitation id
+                    "400":
+                        description: no such invitation(when deleting, nearly impossible to get)
+                    "409":
+                        description: user already in database
+
+/users/invitation/{InvitationId}:
+    displayName: Invitation endpoint for registered users
+    uriParameters:
+            InvitationId:
+                displayName: InvitationId
+                description: Id of invitation
+                type: String
+                required: true
+                repeat: false
+    post:
+        description: Adds user to a therapy
+        responses:
+            "200":
+                description: user added to a therapy
+            "401":
+                description: user email does not match email from invitation
+            "404":
+                description: no such invitation or a therapy
+            "400":
+                description: no such invitation(can come from delete() method but nearly impossible to get)
+    delete:
+        description: Deletes specific invitation
+            responses:
+                    "200":
+                        description: Invitation deleted
+                    "400":
+                        description: No such invitation
+
+
+/users/login:
+    displayName: Login Endpoint
+    get:
+        description: Authenticate in a server and get token
+        displayName: Login
+        headers:
+            authentication:
+                displayName: authentication
+                description: 'Base64 encoded user and password in Base64("user:password") format.'
+                type: string
+                required: true
+                repeat: false
+                example: YWFAYmIuY2M6YWFh
+        responses:
+            "200":
+                description: Authentication succeeded, return token
+                body:
+                    application/json:
+                        schema: TokenResponse
+                        example: '{"token":"sample token"}'
+            "401":
+                description: Password is wrong
+            "404":
+                description: no such user exists
+/users/remind:
+    post:
+    displayName: Posting a password change request
+            body:
+                application/json:
+                    schema: User
+                    example: '{"email":"sample email"}'
+            responses:
+                "200":
+                    description: Request created
+                "400":
+                    description: user already used this tool and didn't changed his password
+                "404":
+                    description: User with email from token doesn't exist.
+                "500":
+                    description: Mailing service failed to load.
+/users/edit:
+    displayName: Edit Endpoint
+    patch:
+        description: Edit user's data and get new token
+        displayName: Edit
+        headers:
+            X-AUTH-TOKEN:
+                displayName: X-AUTH-TOKEN
+                description: User token
+                type: string
+                required: true
+                repeat: false
+                example: eyJ0eX.eyJlbWFpbCI6IJiLmNjIn0.mUQwMV_yw-G4
+        body:
+            application/json:
+                schema: EditRequest
+                example: '{
+                              "newEmail":"new email",
+                              "currentPassword":"current password",
+                              "newPassword":"new password",
+                              "newPasswordConfirmed:"new password"
+                           }'
+        responses:
+            "200":
+                description: Editing user's data succeed, return new token
+                body:
+                    application/json:
+                        schema: TokenResponse
+                        example: '{"token":"sample token"}'
+            "401":
+                description: Wrong current password in EditRequest
+            "409":
+                description: Wrong data given in EditRequest (for example
+                             newPassword and newPasswordConfirmed aren't equal while changing password or
+                             you're trying to set email which is occupied by another user)
+/users/edit/{id}:
+    displayName: Password change endpoint
+    put:
+        description: Changes password of user
+        displayName: Edit
+        body:
+            application/json:
+                schema: ForgottenPasswordRequest
+                example: '{
+                           "Email":"new email",
+                           "newPassword":"new password",
+                           "newPasswordConfirmed:"new password"
+                           }'
+        responses:
+            "200":
+                description: Password changed, user can now log in using his new password
+            "401":
+                description: Link is invalid or passwords from request don't match each other
+            "409":
+                description: Passwords in request does not match eachother

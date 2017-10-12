@@ -1,0 +1,21 @@
+Userzy:
+    - "user1@gmail.com", "password"
+    - "user2@gmail.com", "password"
+    - "user2@gmail.com", "password"
+    - "warden1@gmail.com", "password"
+    - "warden2@gmail.com", "password"
+    - "therapist1@gmail.com", "password"
+Terapie:
+    - "Therapy1":
+        - Pacjenci: user1@gmail.com (jednoczesnie tworca terapii)
+        - Opiekunowie: warden1@gmail.com
+    - "Therapy2":
+        - Pacjenci: user1@gmail.com (jednoczesnie tworca terapii)
+        - Opiekunowie: warden2@gmail.com (OPIEKUN SPECJALNY)
+    - "Therapy3":
+        - Pacjenci: user3@gmail.com (jednoczesnie tworca terapii)
+        - Terapeuci: therapist1@gmail.com
+    - "Therapy4":
+        - Pacjenci: user1@gmail.com (jednoczesnie tworca terapii)
+
+    KAZDA TERAPIA MA JEDNA STATYSTYKE SAMOPOCZUCIA

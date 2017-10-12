@@ -1,0 +1,39 @@
+#%RAML 0.8
+title: NewsApi
+version: "1.0.0"
+baseUri: "http://example.com/v1"
+schemas:
+    -
+        NewsResponse: '
+        {
+            "type":"object",
+            "$schema":"http://json-schema.org/draft-03/schema#",
+            "title":"NewsResponse",
+            "properties":
+            {
+                "time":{"type":"string","required":true,"title":"time"},
+                "therapyId":{"type":"integer","required":true,"title":"therapyId"},
+                "userName":{"type":"string","required":true,"title":"userName"},
+                "therapyName":{"type":"string","required":false,"title":"therapyName"},
+                "description":{"type":"string","required":false,"title":"description"}
+            }
+        }'
+/api/news:
+    displayName: News concerning therapy
+    get:
+        displayName: Get 10 most recent news
+        responses:
+            "200":
+                body:
+                    application/json:
+                        schema: NewsResponse
+                        example:
+                            '[
+                                {
+                                    "time":2017-01-06T17:17:32,
+                                    "therapyId":1,
+                                    "userName":"sample userName",
+                                    "therapyName":"sample therapyName",
+                                    "description":"sample description"
+                                }
+                            ]'

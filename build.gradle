@@ -1,0 +1,78 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
+plugins {
+    id 'org.springframework.boot' version '1.4.2.RELEASE'
+    id 'com.palantir.docker' version '0.12.0'
+}
+
+group 'com.behappy'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'idea'
+apply plugin: 'war'
+
+repositories {
+    mavenCentral()
+}
+
+sourceCompatibility = 1.8
+
+mainClassName = "com.behappy.App"
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+    compile 'org.springframework.boot:spring-boot-starter-jetty:1.4.2.RELEASE'
+    compile 'org.springframework.boot:spring-boot-starter-web:1.4.2.RELEASE'
+    compile 'org.springframework.boot:spring-boot-starter-security:1.4.2.RELEASE'
+    compile 'org.springframework.boot:spring-boot-starter-aop:1.4.2.RELEASE'
+    compile 'com.fasterxml.jackson.core:jackson-core:2.8.2'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.8.2'
+    compile 'com.fasterxml.jackson.core:jackson-annotations:2.8.2'
+    compile 'org.hibernate:hibernate-java8:5.2.8.Final'
+    compile 'org.springframework.boot:spring-boot-starter-data-jpa:1.4.2.RELEASE'
+    compile 'org.springframework.boot:spring-boot-starter-data-rest:1.4.2.RELEASE'
+    compile 'org.springframework.boot:spring-boot-starter-test:1.4.2.RELEASE'
+    compile 'mysql:mysql-connector-java:6.0.5'
+    compile 'org.springframework.boot:spring-boot-starter-mail:1.4.2.RELEASE'
+    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.6.6'
+    compile 'org.springframework:spring-context-support:4.3.4.RELEASE'
+    compile 'javax.mail:mail:1.4.3'
+    compile 'io.jsonwebtoken:jjwt:0.7.0'
+    compile 'org.springframework.boot:spring-boot-starter-security:1.4.2.RELEASE'
+    compile 'com.sun.mail:javax.mail:1.5.6'
+    compile 'io.springfox:springfox-swagger2:2.6.1'
+    compile 'io.springfox:springfox-swagger-ui:2.6.1'
+
+}
+
+bootRepackage {
+    mainClass = 'com.behappy.App'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.4-rc-1'
+}
+
+docker {
+    name 'behappy'
+}
+
+dockerPrepare {
+    dependsOn 'bootRepackage'
+    doLast {
+        copy {
+            from "build/libs/if-behappy-backend-1.0-SNAPSHOT.jar"
+            into "build/docker/"
+        }
+        copy {
+            from "run.sh"
+            into "build/docker/"
+        }
+    }
+}

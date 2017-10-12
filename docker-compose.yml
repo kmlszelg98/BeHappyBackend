@@ -1,0 +1,29 @@
+version: "3"
+
+services:
+
+ mysql:
+  image: mysql/mysql-server:5.7
+  environment:
+   - MYSQL_ROOT_PASSWORD=Admin1234
+   - MYSQL_DATABASE=behappy
+   - MYSQL_USER=Admin
+   - MYSQL_PASSWORD=Admin1234
+  ports:
+   - "3306:3306"
+  networks:
+   network1:
+    aliases:
+     - mysql
+
+ behappy-backend:
+  image: behappy:latest
+  ports:
+   - "8080:8080"
+  networks:
+   network1:
+    aliases:
+     - behappy
+
+networks:
+ network1:

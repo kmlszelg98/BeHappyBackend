@@ -1,0 +1,89 @@
+#%RAML 0.8
+---
+title: Therapy Activities
+baseUri: api/activity
+version: v2.21.01.2016
+
+schemas:
+    TherapyActivityRequest:
+        '{
+            "type":"object",
+            "$schema":"http://json-schema.org/draft-03/schema#",
+            "title":"TherapyStatisticsRequest",
+            "properties":
+                {
+                    "date":{"type":"string","required":true,"title":"date"},
+                    "effort":{"type":"integer","required":true,"title":"effort"},
+                    "activity":{"type":"string","required":true,"title":"activity"},
+                    "startTime":{"type":"string","required":true,"title":"startTime"},
+                    "endTime":{"type":"string","required":true,"title":"endTime"}
+                }
+        }'
+
+/{therapy_id}:
+  /timeAvg:
+    /range:
+        get:
+          description: Produce average for specyfic date period. It takes sum for each day and then count an average.
+
+          queryParameters:
+            begindate:
+              description: "Start date"
+              example: 2011-03-22
+              required: true
+              type: date
+            enddate:
+              description: "End date"
+              example: 2015-03-22
+              required: true
+              type: date
+
+              "200":
+                 description: successful
+              "404":
+                  description: bad therapy id
+              "409":
+                  description : wrong format of data
+
+    /{year}/{month}/{day}:
+        get:
+
+    /{year}/{month}:
+        get:
+
+    /{year}:
+        get:
+
+  /time/{year}/{month}/{day}:
+
+
+
+  /effort/{year}/{month}/{day}:
+    get:
+
+
+  /effortAvg:
+    /range:
+
+    /{year}/{month}:
+        get:
+
+    /{year}:
+        get:
+
+  /byDay:
+    get:
+
+  /byWeek:
+    get:
+
+    /add:
+        post:
+          description: Add activity's description for one activity
+
+            "200":
+                description: successful
+            "404":
+                description: bad therapy id
+            "409":
+                description: wrong request
